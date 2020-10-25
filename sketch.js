@@ -4,6 +4,7 @@ var rand, randHero;
 var gameState = "play";
 var bulletGroup, enemyGroup;
 var score = 0, ground;
+var gameOver, reset;
 
 function preload(){
   aegon_img = loadImage("images/Aegon.png");
@@ -15,6 +16,17 @@ function preload(){
   enemy_img = loadImage("images/villan.png");
   enemy2_img = loadImage("images/villan2.png");
   enemy3_img = loadImage("images/villan3.png");
+
+  weapon_img = loadImage("images/bullet aegon.png");
+  bullet_img = loadImage("images/bullet enemy.png");
+
+  bullet_sound = loadSound("sounds/bulletFire.mp3");
+  weapon_sound = loadSound("sounds/weaponSound.wav");
+  back_sound = loadSound("sounds/backNoise.wav");
+  gameOver_sound = loadSound("sounds/Game Over.mp3");
+
+  gameOver_img = loadImage("images/gameOver.png");
+  reset_img = loadImage("images/reset.png");
 }
 
 function setup(){
@@ -34,12 +46,23 @@ function setup(){
   bulletGroup = new Group();
   enemyGroup = new Group();
   weaponGroup = new Group();
+
+  gameOver = createSprite(width/2, height/3, 10, 10);
+  gameOver.addImage(gameOver_img);
+  reset = createSprite(width/2, height/3 + 100, 10, 10);
+  reset.addImage(reset_img);
+  reset.scale = 0.25;
 }
 
 function draw(){
   background("lightgreen");
 
   if(gameState == "play"){
+    gameOver.visible = false;
+    reset.visible = false;
+
+    //back_sound.play();
+    
     back.velocityX = -5;
     if(back.x < 0){
       back.x = width/2;
@@ -71,7 +94,8 @@ function draw(){
     }
 
     if(enemyGroup.isTouching(aegon) || bulletGroup.isTouching(aegon)){
-      gameState = "end";
+      gameState = "end";    
+      gameOver_sound.play();
     }
   }
 
@@ -85,9 +109,11 @@ function draw(){
     enemyGroup.setLifetimeEach(-1);
     bulletGroup.setLifetimeEach(-1);
 
+    reset.visible = true;
+    gameOver.visible = true;
   }
 
-  if(keyIsDown(32) && gameState == "end"){
+  if(mousePressedOver(reset) && gameState == "end"){
     restart();
     randHero = Math.round(random (1, 3));
     switch(randHero){
@@ -119,6 +145,9 @@ function restart(){
 
   enemyGroup.destroyEach();
   bulletGroup.destroyEach();
+  back_sound.play();
+
+  score = 0;
 }
 
 function spawnEnemy(){
@@ -127,7 +156,7 @@ function spawnEnemy(){
     enemy.velocityX = -4;
     enemy.velocityY += 2;
     enemy.scale = 0.5;
-    enemy.debug = true;
+    //enemy.debug = true;
     enemy.lifetime = - width/enemy.velocityX;
 
     rand = Math.round(random (1, 3));
@@ -154,8 +183,10 @@ function spawnEnemy(){
       bullet.velocityX += -10;
       bullet.shapeColor = "red";
       bullet.lifetime = - width/bullet.velocityX;
-      bullet.debug = true;
-      //playSound("sounds/bulletFire.mp3");
+      //bullet.debug = true;
+      bullet.addImage(bullet_img);
+      bullet.scale = 0.5;
+      bullet_sound.play();
       bulletGroup.add(bullet);
     }
   }
@@ -165,5 +196,7 @@ function spawnWeapon(){
   var weapon = createSprite(aegon.x, aegon.y, 20, 20);
   weapon.velocityX = 7;
   weapon.lifetime = - width/weapon.velocityX;
+  weapon.addImage(weapon_img);
+  weapon.scale = 0.1;
   weaponGroup.add(weapon);
 }
